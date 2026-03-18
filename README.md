@@ -103,7 +103,7 @@ You will need PostgreSQL installed and running on your machine (default port `54
 
 ## 📋 Available Frontend Pages
 
-1. **Sign Up** (`/signup`) — Create a new student account (Name, Class, Phone, Username, Password). This hits `/api/signup` and saves direct to PostgreSQL.
+1. **Sign Up** (`/signup`) — Create a new student account (Name, Class, Phone, Username, Password). This hits `/api/signup` and saves the data directly into your PostgreSQL `students` table.
 2. **Login** (`/login`) — Login with your username and password. Returns a secure JWT Token.
 3. **Welcome Dashboard** (`/welcome`) — Protected page showing dynamic student data fetched securely using the JWT Token.
 
