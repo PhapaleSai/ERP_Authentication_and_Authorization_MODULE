@@ -5,8 +5,17 @@ from sqlalchemy.orm import Session
 import models
 import schemas
 from database import get_db
+from auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["User Management"])
+
+
+@router.get("/me", response_model=schemas.UserOut)
+def get_user_me(current_user: models.User = Depends(get_current_user)):
+    """
+    Return the authenticated user's profile.
+    """
+    return current_user
 
 
 @router.get("", response_model=List[schemas.UserOut])

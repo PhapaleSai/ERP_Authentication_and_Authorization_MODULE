@@ -25,31 +25,46 @@ def assign_role(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    """
-    Assign a role to a user by user_id.
-    Requires a valid JWT (any authenticated user can call this in the demo;
-    add role-check middleware in production).
-    """
+    # ... (existing code stays)
     user = db.query(models.User).filter(models.User.user_id == payload.user_id).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with id {payload.user_id} not found",
-        )
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # Validate that the role exists
     role = db.query(models.Role).filter(models.Role.role_name == payload.role).first()
     if not role:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Role '{payload.role}' does not exist. Call GET /roles for valid roles.",
-        )
+        raise HTTPException(status_code=400, detail="Role not found")
 
-    # Note: user.role is now a read-only property. 
-    # To assign a role, we update user_roles. We support 1 role per user in this demo:
     db.query(models.UserRole).filter(models.UserRole.user_id == user.user_id).delete()
     
-    new_user_role = models.UserRole(user_id=user.user_id, role_id=role.role_id)
+    new_user_role = models.UserRole(
+        user_id=user.user_id, 
+        role_id=role.role_id,
+        created_by=current_user.email,
+        token_expiry=getattr(current_user, 'token_expiry', None)
+    )
     db.add(new_user_role)
     db.commit()
     return {"message": "Role assigned successfully"}
+
+
+@router.put("/{role_id}/permissions")
+def update_role_permissions(
+    role_id: int,
+    payload: List[str],
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Update permissions for a specific role."""
+    # Simple role check here since it's an admin operation
+    if current_user.role not in ['admin', 'vice_principal']:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    role = db.query(models.Role).filter(models.Role.role_id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+
+    role.permissions = payload
+    role.updated_by = current_user.email
+    role.token_expiry = getattr(current_user, 'token_expiry', None)
+    db.commit()
+    return {"message": "Permissions updated", "permissions": role.permissions}

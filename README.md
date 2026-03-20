@@ -1,114 +1,75 @@
-# PVG College Auth & Authorization Module 🎓
+# PVG College Auth & Enterprise Management System 🎓
 
-A full-stack authentication, authorization, and student management application built for **PVG College of Science**.
+A professional-grade authentication, authorization, and administrative suite built for **PVG College of Science**.
 
-**Technology Stack:** React (Vite) · FastAPI · PostgreSQL · SQLAlchemy
-
----
-
-## 🌟 What We've Built So Far
-
-1. **Secure JWT Authentication**:
-   - `students` can register and log in via the React frontend.
-   - Passwords are securely hashed using `bcrypt`.
-   - The React UI automatically attaches JWT tokens to authenticated requests.
-
-2. **Backend Architecture**:
-   - Upgraded from SQLite to a robust **PostgreSQL** database.
-   - Built a comprehensive FastAPI backend that perfectly mirrors the complex `pvg_auth` relational database schema.
-   - Integrated Pydantic models to validate all API incoming and outgoing data.
-
-3. **Role-Based Access Control (RBAC)**:
-   - Built endpoints (`GET /roles`, `POST /roles/assign`) to manage and assign dynamic roles (Admin, Principal, Student, Faculty) securely using a `user_roles` linking table.
-   - Advanced endpoints built for managing global `User` accounts separate from the legacy `Student` UI flow.
-
-4. **Testing Environments**:
-   - Fully interactive **Swagger UI** (`/docs`) configured with OAuth2 to test role assignments easily.
-   - Custom **Postman Collection** with automated JWT token handling included in the project root.
+**Technology Stack:** React (Vite) · FastAPI · PostgreSQL · SQLAlchemy · Glassmorphism UI
 
 ---
 
-## 🚀 Setup Instructions
+## 🌟 Enhanced Enterprise Features
 
-### 1. Database Setup (PostgreSQL)
+1. **Dual-Portal Architecture**:
+   - **User Portal (`:5173`)**: Secure registration and profile management for students.
+   - **Admin Portal (`:5174`)**: High-performance dashboard for institutional oversight.
 
-You will need PostgreSQL installed and running on your machine (default port `5432`).
+2. **Enterprise Admin Dashboard**:
+   - **Interactive Live Telemetry**: Real-time tracking of logins, registrations, and system events.
+   - **Granular RBAC**: Manage roles and permissions with a visual policy editor.
+   - **User Directory**: Deep-dive into specific user profiles with dedicated security audit timelines.
+   - **System Health**: Active monitoring of server load, database connectivity, and auth caches.
 
-1. Open `pgAdmin` or your terminal (`psql`).
-2. Create a new database named `pvg_auth`:
-   ```sql
-   CREATE DATABASE pvg_auth;
-   ```
-3. Run the provided schema script against your new database to create the `users`, `roles`, `user_roles`, and `students` tables:
+3. **Robust Security & Auditing**:
+   - **JWT with Session Expiry**: Every token event (login/logout) is tracked with IP and expiry data.
+   - **Database-Level Auditing**: Global `AuditMixin` ensures every change is timestamped and attributed.
+
+---
+
+## 🚀 Unified Quick Start
+
+Launch the entire ecosystem (Backend + User App + Admin App) with a single command:
+
+```bash
+# 1. Install root dependencies
+npm install
+
+# 2. Start all services concurrently
+npm run dev
+```
+
+### Access Points:
+- **Admin Dashboard**: [http://localhost:5174](http://localhost:5174) (Login: `admin` / `admin`)
+- **User Portal**: [http://localhost:5173](http://localhost:5173)
+- **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 📋 System Setup
+
+### 1. Database (PostgreSQL)
+Ensure PostgreSQL is running on `localhost:5432`.
+1. Create database `pvg_auth`.
+2. Initialize schema:
    ```bash
    psql -U postgres -d pvg_auth -f setup_auth_tables.sql
    ```
-*(Replace `postgres` with your Postgres username if different).*
 
-### 2. Backend Setup
+### 2. Environment Configuration
+Create a `.env` in the `backend/` folder:
+```env
+DATABASE_URL=postgresql+psycopg2://postgres:YOUR_PASSWORD@localhost:5432/pvg_auth
+SECRET_KEY=pvg_super_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+```
 
-1. Open a terminal and navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a Python virtual environment:
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate      # Windows
-   # source venv/bin/activate   # Mac/Linux
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure your Environment Variables:
-   - Ensure you have a `.env` file inside the `backend` folder containing your database credentials:
-     ```env
-     DATABASE_URL=postgresql+psycopg2://postgres:demo123@localhost:5432/pvg_auth
-     SECRET_KEY=pvg_super_secret_key_change_in_production
-     ALGORITHM=HS256
-     ACCESS_TOKEN_EXPIRE_MINUTES=60
-     ```
-   *(Update `demo123` to your actual Postgres password).*
-
-5. Create Demo Data (Optional but Recommended):
-   ```bash
-   python seed_users.py
-   ```
-   *This seeds default testing users into the database.*
-
-6. Start the Server:
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
-   **The backend will now be live at `http://127.0.0.1:8000`**. You can visit `/docs` for the interactive Swagger UI.
-
-### 3. Frontend Setup
-
-1. Open a **new** terminal (keep the backend running) and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install NodeJS dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite React development server:
-   ```bash
-   npm run dev
-   ```
-4. Open your browser and navigate to the local URL provided (usually **`http://localhost:5173`**).
+### 3. Folder Structure
+- `/backend`: FastAPI core and SQLAlchemy models.
+- `/frontend/user`: Vite-based student registration portal.
+- `/frontend/admin`: Premium administrative dashboard.
 
 ---
 
-## 📋 Available Frontend Pages
-
-1. **Sign Up** (`/signup`) — Create a new student account (Name, Class, Phone, Username, Password). This hits `/api/signup` and saves the data directly into your PostgreSQL `students` table.
-2. **Login** (`/login`) — Login with your username and password. Returns a secure JWT Token.
-3. **Welcome Dashboard** (`/welcome`) — Protected page showing dynamic student data fetched securely using the JWT Token.
-
-## 🔐 API Endpoints Overview
-
-- **Auth Core**: `POST /auth/login`, `POST /auth/register`, `POST /auth/logout`
-- **UI Specific**: `POST /api/login`, `POST /api/signup`, `GET /api/me`
-- **Roles & Users**: `GET /roles`, `POST /roles/assign`, `GET /users`
+## 🔐 API Reference
+- **Admin**: `GET /admin/stats`, `GET /admin/users`, `GET /admin/audit`
+- **Auth**: `POST /auth/login`, `POST /auth/register`, `POST /roles/assign`
+- **Profiles**: `GET /users/me`, `GET /admin/users/{id}`

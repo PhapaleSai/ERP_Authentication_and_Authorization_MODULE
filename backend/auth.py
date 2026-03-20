@@ -17,8 +17,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Shared OAuth2 scheme — tokenUrl points to our new /auth/login endpoint
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# Shared OAuth2 scheme — tokenUrl points to our new /api/auth/login endpoint
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
 def get_password_hash(password: str) -> str:
@@ -55,9 +55,23 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
+    # Check if token exists and is active in DB
+    db_token = db.query(models.UserToken).filter(
+        models.UserToken.token == token,
+        models.UserToken.is_active == True,
+        models.UserToken.expiry_date > datetime.utcnow()
+    ).first()
+    
+    if not db_token:
+        raise credentials_exception
+
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None:
         raise credentials_exception
+    
+    # Attach token expiry for audit purposes
+    user.token_expiry = db_token.expiry_date
+    
     return user
 
 
